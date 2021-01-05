@@ -1,35 +1,41 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec 23 16:10:23 2020
-
-@author: timot
-"""
-
 import numpy as np
-import TwoQbitGen as tq
 import matplotlib.pyplot as plt
+import TwoQbitGen as tq
 
-
+#make a set of matrices and then filter them into binned concurrence 
+#arrays to test how the neural network handles different concurrences
+#then we do the same to entropy
+#tq.BatchDataMixed(0, 100, select_concurrence = [True, 0.5])
 
 fidelity_values = []
 batch_data = []
 fidelity_std = []
-for i in range(1, 10):
-    a = 2**i
-    #print(a)
-    x, y, z = tq.BatchDataMixed(0, a)
-    fidelity_values.append(x)
-    batch_data.append(y)
-    fidelity_std.append(z)
+many_fidelities = []
 
-plt.plot(batch_data, fidelity_values)
+x, y, z, f, c, s = tq.BatchDataMixed(0, 1000, select_concurrence = [False, 0.5])
+fidelity_values.append(x)
+batch_data.append(y)
+fidelity_std.append(z)
+many_fidelities.append(f)
 
-plt.xlabel("Batch Size")
-plt.ylabel("Fidelity")
-plt.errorbar(batch_data, fidelity_values, xerr = None, yerr = fidelity_std, barsabove = True )
+
+for i in range(len(c)):
+    if c[i] > 0.5:
+        print("nah mate")
+    elif c[i] <0.5:
+        print("Yes")
+    else:
+        print("wtf")
+    
+
+
+
+plt.hist(many_fidelities, bins = 50, rwidth = 6)
 plt.grid()
+plt.xlabel("Fidelity")
 plt.show()
-print(fidelity_values)
-#%%
-plt.hist(fidelity_values, bins = 10)
+
+plt.hist(c, bins = 50, rwidth = 6)
+plt.grid()
+plt.xlabel("Concurrence")
 plt.show()

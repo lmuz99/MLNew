@@ -8,25 +8,27 @@ import pandas as pd
 import TwoQbitGen as tq
 #import tensorflow as tf
 
-#tq.BatchData(1, 100)
-data_size = 2000
+tq.BatchData(1, 100)
+data_size = 250
 batchnumber = 1
 
-
+vector = pd.read_csv("data_ref_fidS100#1.csv", header = 0, sep = ',', dtype = float)
 print("Creating Data")
 tq.BatchData(batchnumber, data_size)
 print("Data Created")
 
 
-vector = pd.read_csv("data_ref_fidS" + str(data_size) + "#" + str(batchnumber) + ".csv", header = 0, sep = ',', dtype = \
+vector = pd.read_csv("data_ref_fidS250#1.csv", header = 0, sep = ',', dtype = \
                      {"Density Ref1":np.int32,"Density Ref2":np.int32,"Fidelity":float})
-matrices = pd.read_csv("Matrices2QS" + str(data_size) + "#" + str(batchnumber) + ".csv", header = 0, sep = ',' , dtype = float)
+matrices = pd.read_csv("Matrices2QS100#1.csv", header = 0, sep = ',' , dtype = float)
+matrices = pd.read_csv("Matrices2QS250#1.csv", header = 0, sep = ',' , dtype = float)
 
 #to match up a pair of matrices, simply index the vector's 0th and 1st positions
 #for example:
+mat_A_vect = matrices.iloc[vector.iloc[17,0]]
+mat_B_vect = matrices.iloc[vector.iloc[17,1]]
 #mat_A_vect = matrices.iloc[vector.iloc[17,0]]
 #mat_B_vect = matrices.iloc[vector.iloc[17,1]]
-
 #to reconstruct the matrix in matrix form we need to take pairs and make them entries
 
 buffer = []
@@ -54,8 +56,6 @@ df.columns=columns
 
 print("Dataframe Constructed")
 
-print("Writing to disk")
-
 df.to_csv(filename, index = False)
 
 print("File written")
@@ -71,7 +71,6 @@ def Conv_Vect_Mat(vector_32):
     OUT: 4x4 complex values matrix with real and imaginary pairs coming from
     neighbouring pairs in the 32D vector. See nested loop for exact indexing.
     '''
-    
     if (len(vector_32)) != 32:
         raise Exception("Vector must be of length 32")
     else:
@@ -152,8 +151,7 @@ def AddNoise(matrix_4by4):
             
     return matrix_4by4
 
-#RemoveEntries(new_matrix1)
+RemoveEntries(new_matrix1)
 #AddNoise(new_matrix1)
 #AddNoise(new_matrix1)
     
-

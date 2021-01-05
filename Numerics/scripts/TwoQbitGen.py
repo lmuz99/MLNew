@@ -1,3 +1,4 @@
+  
 # -*- coding: utf-8 -*-
 """
 Generates every possible pure state density matrix to a resolution r, with every
@@ -197,6 +198,7 @@ def Mixed2QGen():
     rho_tilde[1,2] = 0.5*x
     rho_tilde[2,1] = 0.5*x
     # appended the 2 parameters into rho_tilde as necessary
+    #print(x)
     return rho_tilde
 
 def TransformMatrix(density_mat):
@@ -297,23 +299,73 @@ def FidelityMixed(matA, matB):
     
     return np.trace(product_root) ** 2
 
-def BatchDataMixed(batchnumber, data_size):
+def BatchDataMixed(batchnumber, data_size, \
+                   select_concurrence = [False,0 , 1] , select_entropy = [False,0,2]):
+    '''
+    This method makes a batch of mixed states using the Mixed2QGen method, below
+    is a "logic tree" that will select states with concurrence OR entropy between
+    bounded values. When the method is called, both are set to 
+    default False and the matrices will have concurrences according to the 
+    inherant distribution (bias) of the parameterisation of Mixed2QGen.
+    
+    RAISES ERROR IF BOTH SELECT_CONCURRENCE AND SELECT_ENTROPY ARE SET TO TRUE
+    
+    Filenames change if concurrence or entropy is controlled. I added CONC for concurrence
+    and ENTR for entropy, and nothing if neither is capped.
+    '''
     raw_matrix_data = []
     #ref_data has 3 vectors for each element in the array corresponding to 2 references
     #to two density matrices in the raw_matrix_data array and their shared fidelity value
     ref_data = []
-    for i in range(data_size):
-        mat = Mixed2QGen()
-        raw_matrix_data.append(TransformMatrix(mat))
-        
+    concurrence_arr = []
+    entropy_arr = []
+    if (select_concurrence == True) and (select_entropy == True):
+        raise Exception("Cannot select according to both entropy and concurrence, set at least one to false")
+    elif (select_concurrence[2] <= select_concurrence[1]) or (select_entropy[2] <= select_entropy[1]):
+        raise Exception("Invalid range arguent - range must be low to high")
+    elif (len(select_concurrence) != 3) or (len(select_entropy) !=3):
+        raise Exception("Invalid number of arguments, select entropy or concurrence needs a truth value, a min and a max vale.")
+    else:
+        pass
+    
+    data_counter = 0
+    while (data_counter <= data_size):
+        mat = TransformMatrix(Mixed2QGen()) # make a mixed state density matrix
+        if select_concurrence[0] == True:
+            filename = "MixedData_ref_fidCONC" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            if StateConcurrence(mat) <= select_concurrence[2] and StateConcurrence(mat) >= select_concurrence[1]:   
+                concurrence_arr.append(StateConcurrence(mat))
+                raw_matrix_data.append(mat) # appends only matrices within specified range
+                data_counter += 1
+            else:
+                pass # does nothing if the value is greater and the concurrence condition true
+        elif select_entropy == True:
+            filename = "MixedData_ref_fidENTR" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            if StateEntropy(mat) >= select_entropy[1] and StateEntropy(mat) <= select_entropy[2]:
+                entropy_arr.append(StateEntropy(mat, 100))
+                raw_matrix_data.appen(mat) # only appends matrices within specified range
+                data_counter += 1
+            else:
+                pass
+        else: 
+            # this section is for "standard" entropies and concurrences with a distribution arising from the inherant bias in parameterisation
+            raw_matrix_data.append(mat)
+            filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            data_counter +=1
+            concurrence_arr.append(StateConcurrence(mat))
+            entropy_arr.append(StateEntropy(mat, 100))
+            
+    all_fidelity_vals = []
     for i in range(data_size):
         for j in range(i+1, data_size): #upper triangular nesting, i+1 to stop a fidelity with a density matrix on itself
             fid = FidelityMixed(raw_matrix_data[i], raw_matrix_data[j])
             ref_data.append([i,j,fid])
+            all_fidelity_vals.append(fid)
+            
     
      #Stores the ref_data 
     df = pd.DataFrame(ref_data, columns=['Density Ref1', 'Density Ref2', 'Fidelity'])
-    filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+    
     df.to_csv(filename, index = False)
     #Sotres the matrix entries
     flat_data = []
@@ -348,7 +400,7 @@ def BatchDataMixed(batchnumber, data_size):
     dg.to_csv(filename2, index = False)
     print(len(ref_data), "Reference Data Length")
     
-    return np.real(avg_fid), data_size, std_fid
+    return np.real(avg_fid), data_size, std_fid, all_fidelity_vals, concurrence_arr, entropy_arr
 
 def StateConcurrence(mat_4x4):
     '''
@@ -370,7 +422,7 @@ def StateConcurrence(mat_4x4):
     eigenvalue_array = np.linalg.eigvals(big_R)
     #now we sort the eigenvalues into ascending order, taking their moduli
     np.sort_complex(eigenvalue_array)
-    print(eigenvalue_array)
+    #print(eigenvalue_array)
     #print(eigenvalue_array, 'EIGENS', len(eigenvalue_array))
     concurrence_complex = 2 * eigenvalue_array[0] - np.sum(eigenvalue_array)
     #floating point error means it will never be 0 so we return the mixed state
@@ -387,9 +439,3 @@ def CheckShape(matrix):
         print(matrix.shape)   #same here
         raise Exception("Density matrices are of wrong dimensions")
     return is4x4
-
-matrix = Mixed2QGen()
-mixed_density = TransformMatrix(matrix)
-#for some reason the transform means the concurrence no longer matches with x
-a = StateConcurrence(mixed_density)
-print(a)
