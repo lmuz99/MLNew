@@ -102,32 +102,32 @@ val_features = validation_df.drop(label_name, axis = 1)
 
 def build_model(hp):
     
-    dropout = hp.Float('dropout_rate', min_value=0, max_value=0.02, step=0.02)
+    dropout = hp.Float('dropout_rate', min_value=0, max_value=0, step=0.01)
     l2reg = hp.Float('regularisation_rate',
-                       min_value=1E-6, max_value=1E-4, step=5E-6)
+                       min_value=3E-5, max_value=6E-5, step=1E-6)
     activation_func = 'relu'
     
     inputs = keras.Input(shape=(64,))
     
-    dense0 = layers.Dense(units = hp.Int('units0', min_value=576, max_value=1024, step=32),
+    dense0 = layers.Dense(units = hp.Int('units0', min_value=864, max_value=1024, step=16),
                      activation=activation_func,
                      kernel_regularizer=tf.keras.regularizers.l2(l2reg))(inputs)
     
     drop0 = layers.Dropout(rate = dropout)(dense0)
     
-    dense1 = layers.Dense(units = hp.Int('units1', min_value=256, max_value=1024, step=32),
+    dense1 = layers.Dense(units = hp.Int('units1', min_value=440, max_value=760, step=32),
                      activation=activation_func,
                      kernel_regularizer=tf.keras.regularizers.l2(l2reg))(drop0)
     
     drop1 = layers.Dropout(rate = dropout)(dense1)
     
-    dense2 = layers.Dense(units = hp.Int('units2', min_value=256, max_value=1024, step=32),
+    dense2 = layers.Dense(units = hp.Int('units2', min_value=440, max_value=760, step=32),
                      activation=activation_func,
                      kernel_regularizer=tf.keras.regularizers.l2(l2reg))(drop1)
     
     drop2 = layers.Dropout(rate = dropout)(dense2)
     
-    dense3 = layers.Dense(units = hp.Int('units3', min_value=64, max_value=512, step=32),
+    dense3 = layers.Dense(units = hp.Int('units3', min_value=16, max_value=128, step=16),
                      activation=activation_func,
                      kernel_regularizer=tf.keras.regularizers.l2(l2reg))(drop2)
     
@@ -140,28 +140,28 @@ def build_model(hp):
     model.compile(
         optimizer=keras.optimizers.Adam(
             hp.Float('learning_rate',
-                       min_value=1E-5, max_value=5E-4, step=1E-5)),
+                       min_value=2.5E-4, max_value=5E-4, step=1E-5)),
         loss='mean_absolute_error',
         metrics=['mean_absolute_error'])
     
     return model
 
-es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience = 4, baseline=0.15,  verbose=2)
+es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience = 4, baseline=0.1,  verbose=2)
 
 tuner = RandomSearch(
     build_model,
     objective='val_mean_absolute_error',
-    max_trials=100,
-    executions_per_trial=2,
+    max_trials=30,
+    executions_per_trial=3,
     directory='v1_tuning',
-    project_name='numerics9')
+    project_name='numerics10')
 
 tuner.search(train_features, train_label,
-             epochs=30,
-             validation_data=(val_features, val_label),
-             batch_size=2048,
-             callbacks = [es],
-             verbose = 2
-             )
+              epochs=40,
+              validation_data=(val_features, val_label),
+              batch_size=4096,
+              callbacks = [es],
+              verbose = 2
+              )
 
 tuner.results_summary()

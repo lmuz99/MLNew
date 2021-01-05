@@ -297,7 +297,7 @@ def FidelityMixed(matA, matB):
     product = np.matmul(buffer_mat, matA_root)
     product_root = sqrtm(product)
     
-    return np.trace(product_root) ** 2
+    return np.real(np.trace(product_root) ** 2)     #LM - Seem to be picking up floating point error in the complex part
 
 def BatchDataMixed(batchnumber, data_size, \
                    select_concurrence = [False,0 , 1] , select_entropy = [False,0,2]):

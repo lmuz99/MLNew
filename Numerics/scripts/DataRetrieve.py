@@ -8,60 +8,93 @@ import pandas as pd
 import TwoQbitGen as tq
 #import tensorflow as tf
 
-tq.BatchData(1, 100)
-data_size = 250
-batchnumber = 1
+# tq.BatchData(1, 100)
+# data_size = 250
+# batchnumber = 1
 
-vector = pd.read_csv("data_ref_fidS100#1.csv", header = 0, sep = ',', dtype = float)
-print("Creating Data")
-tq.BatchData(batchnumber, data_size)
-print("Data Created")
+# vector = pd.read_csv("data_ref_fidS100#1.csv", header = 0, sep = ',', dtype = float)
+# print("Creating Data")
+# tq.BatchData(batchnumber, data_size)
+# print("Data Created")
 
 
-vector = pd.read_csv("data_ref_fidS250#1.csv", header = 0, sep = ',', dtype = \
+# #vector = pd.read_csv("data_ref_fidS250#1.csv", header = 0, sep = ',', dtype = \
+#                     # {"Density Ref1":np.int32,"Density Ref2":np.int32,"Fidelity":float})
+# #matrices = pd.read_csv("Matrices2QS250#1.csv", header = 0, sep = ',' , dtype = float)
+
+# #to match up a pair of matrices, simply index the vector's 0th and 1st positions
+# #for example:
+
+# #mat_A_vect = matrices.iloc[vector.iloc[17,0]]
+# #mat_B_vect = matrices.iloc[vector.iloc[17,1]]
+# #to reconstruct the matrix in matrix form we need to take pairs and make them entries
+
+# buffer = []
+
+# for i in range(0, len(vector)):
+#     mat_A_vect = matrices.iloc[vector.iloc[i,0]]
+#     mat_B_vect = matrices.iloc[vector.iloc[i,1]]
+#     temp = pd.concat([mat_A_vect, mat_B_vect, pd.Series(vector.iloc[i,2])], ignore_index=True)
+#     buffer.append(temp)
+#     if(i%1000 == 0):
+#         print((100*i)/len(vector),"%")
+
+# df = pd.concat(buffer, axis=1)
+# df = df.T
+# columns = ['A_00R','A_00I','A_01R','A_01I','A_02R','A_02I','A_03R','A_03I',\
+#                                      'A_10R','A_10I','A_11R','A_11I','A_12R','A_12I','A_13R','A_13I',\
+#                                      'A_20R','A_20I','A_21R','A_21I','A_22R','A_22I','A_23R','A_23I',\
+#                                      'A_30R','A_30I','A_31R','A_31I','A_32R','A_32I','A_33R','A_33I',\
+#                                      'B_00R','B_00I','B_01R','B_01I','B_02R','B_02I','B_03R','B_03I',\
+#                                      'B_10R','B_10I','B_11R','B_11I','B_12R','B_12I','B_13R','B_13I',\
+#                                      'B_20R','B_20I','B_21R','B_21I','B_22R','B_22I','B_23R','B_23I',\
+#                                      'B_30R','B_30I','B_31R','B_31I','B_32R','B_32I','B_33R','B_33I', "Fidelity"]
+# filename = "Reconstructed2Q"+ "S" + str(data_size) +"#"  + str(batchnumber) + ".csv"
+# df.columns=columns
+
+# print("Dataframe Constructed")
+
+# df.to_csv(filename, index = False)
+
+# print("File written")
+
+     
+def ReconstructFile(batch_num, data_size, conc, entr):
+    print("Reconstructing data")
+    if(conc):
+        vector = pd.read_csv("MixedData_ref_fidCONC" + "S" + str(data_size) + "#" + str(batch_num) + ".csv", header = 0, sep = ',', dtype = \
                      {"Density Ref1":np.int32,"Density Ref2":np.int32,"Fidelity":float})
-matrices = pd.read_csv("Matrices2QS100#1.csv", header = 0, sep = ',' , dtype = float)
-matrices = pd.read_csv("Matrices2QS250#1.csv", header = 0, sep = ',' , dtype = float)
-
-#to match up a pair of matrices, simply index the vector's 0th and 1st positions
-#for example:
-mat_A_vect = matrices.iloc[vector.iloc[17,0]]
-mat_B_vect = matrices.iloc[vector.iloc[17,1]]
-#mat_A_vect = matrices.iloc[vector.iloc[17,0]]
-#mat_B_vect = matrices.iloc[vector.iloc[17,1]]
-#to reconstruct the matrix in matrix form we need to take pairs and make them entries
-
-buffer = []
-
-for i in range(0, len(vector)):
-    mat_A_vect = matrices.iloc[vector.iloc[i,0]]
-    mat_B_vect = matrices.iloc[vector.iloc[i,1]]
-    temp = pd.concat([mat_A_vect, mat_B_vect, pd.Series(vector.iloc[i,2])], ignore_index=True)
-    buffer.append(temp)
-    if(i%1000 == 0):
-        print((100*i)/len(vector),"%")
-
-df = pd.concat(buffer, axis=1)
-df = df.T
-columns = ['A_00R','A_00I','A_01R','A_01I','A_02R','A_02I','A_03R','A_03I',\
-                                     'A_10R','A_10I','A_11R','A_11I','A_12R','A_12I','A_13R','A_13I',\
-                                     'A_20R','A_20I','A_21R','A_21I','A_22R','A_22I','A_23R','A_23I',\
-                                     'A_30R','A_30I','A_31R','A_31I','A_32R','A_32I','A_33R','A_33I',\
-                                     'B_00R','B_00I','B_01R','B_01I','B_02R','B_02I','B_03R','B_03I',\
-                                     'B_10R','B_10I','B_11R','B_11I','B_12R','B_12I','B_13R','B_13I',\
-                                     'B_20R','B_20I','B_21R','B_21I','B_22R','B_22I','B_23R','B_23I',\
-                                     'B_30R','B_30I','B_31R','B_31I','B_32R','B_32I','B_33R','B_33I', "Fidelity"]
-filename = "Reconstructed2Q"+ "S" + str(data_size) +"#"  + str(batchnumber) + ".csv"
-df.columns=columns
-
-print("Dataframe Constructed")
-
-df.to_csv(filename, index = False)
-
-print("File written")
-
         
+    matrices = pd.read_csv("Matrices2Q"+ "S" + str(data_size) +"#"  + str(batch_num) + ".csv", header = 0, sep = ',' , dtype = float)
     
+    buffer = []
+
+    for i in range(0, len(vector)):
+        mat_A_vect = matrices.iloc[vector.iloc[i,0]]
+        mat_B_vect = matrices.iloc[vector.iloc[i,1]]
+        temp = pd.concat([mat_A_vect, mat_B_vect, pd.Series(vector.iloc[i,2])], ignore_index=True)
+        buffer.append(temp)
+        if(i%1000 == 0):
+            print((100*i)/len(vector),"%")
+    
+    df = pd.concat(buffer, axis=1)
+    df = df.T
+    columns = ['A_00R','A_00I','A_01R','A_01I','A_02R','A_02I','A_03R','A_03I',\
+                                         'A_10R','A_10I','A_11R','A_11I','A_12R','A_12I','A_13R','A_13I',\
+                                         'A_20R','A_20I','A_21R','A_21I','A_22R','A_22I','A_23R','A_23I',\
+                                         'A_30R','A_30I','A_31R','A_31I','A_32R','A_32I','A_33R','A_33I',\
+                                         'B_00R','B_00I','B_01R','B_01I','B_02R','B_02I','B_03R','B_03I',\
+                                         'B_10R','B_10I','B_11R','B_11I','B_12R','B_12I','B_13R','B_13I',\
+                                         'B_20R','B_20I','B_21R','B_21I','B_22R','B_22I','B_23R','B_23I',\
+                                         'B_30R','B_30I','B_31R','B_31I','B_32R','B_32I','B_33R','B_33I', "Fidelity"]
+    filename = "Reconstructed2Q"+ "S" + str(data_size) +"#"  + str(batch_num) + ".csv"
+    df.columns=columns
+    
+    print("Dataframe Constructed")
+    
+    df.to_csv(filename, index = False)
+    
+    print("File written")
 
 def Conv_Vect_Mat(vector_32):
     '''
@@ -84,9 +117,9 @@ def Conv_Vect_Mat(vector_32):
 
     return converted_matrix
 
-new_matrix1 = Conv_Vect_Mat(mat_A_vect)
-new_matrix2 = Conv_Vect_Mat(mat_B_vect)
-a = tq.Fidelity(new_matrix1, new_matrix2)
+# new_matrix1 = Conv_Vect_Mat(mat_A_vect)
+# new_matrix2 = Conv_Vect_Mat(mat_B_vect)
+# a = tq.Fidelity(new_matrix1, new_matrix2)
 #new_matrix1 = Conv_Vect_Mat(mat_A_vect)
 #new_matrix2 = Conv_Vect_Mat(mat_B_vect)
 #a = tq.Fidelity(new_matrix1, new_matrix2)
@@ -151,7 +184,7 @@ def AddNoise(matrix_4by4):
             
     return matrix_4by4
 
-RemoveEntries(new_matrix1)
+#RemoveEntries(new_matrix1)
 #AddNoise(new_matrix1)
 #AddNoise(new_matrix1)
     
