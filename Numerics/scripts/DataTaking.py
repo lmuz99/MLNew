@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import TwoQbitGen as tq
 import DataRetrieve as dr
-import NeuralNet as NN
+import NeuralNetv2 as NN
 
 
 '''
@@ -19,13 +19,10 @@ the NN as opposed to here. For now I use a placeholder method for the NN.
 
 def ReplaceMe(batch_size, train_size, train_batch, valid_size, valid_batch, test_size, test_batch):
     
-    NN.TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, test_size, test_batch)
+    loss, loss_array, fid, fid_array = NN.TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, test_size, test_batch)
     print("NN just ran and returned a loss value average and distribution as an array of losses")
-    
-    loss = np.random.random_sample()
-    loss_array = []
-    
-    return loss, loss_array
+
+    return loss, loss_array, fid, fid_array
 
 
 # x: AVG FID
@@ -46,7 +43,7 @@ for i in range(5):
     test_sizes =  [2,3,6,12,23,45,91,181,359,724]
     batch_sizes = [1,2,4,16,64,128,256,512,1024,1024]
     
-    for j in range(4, 11):
+    for j in range(1, 11):
         
 # ---------------- GENERATE DATA ------------------------- #
         
@@ -97,7 +94,7 @@ for i in range(5):
         
 # ---------------- RUN NEURAL NET ------------------------- #        
         
-        loss_avg, loss_dist = ReplaceMe(batch_sizes[j-1], size, 0, val_sizes[j-1], 1, test_sizes[j-1], 2) # RUN NN on the data just created
+        loss_avg, loss_dist, fid_avg, fid_dist = ReplaceMe(batch_sizes[j-1], size, 0, val_sizes[j-1], 1, test_sizes[j-1], 2) # RUN NN on the data just created
         
         data_size_arr.append(y)
         losses.append(loss_avg)

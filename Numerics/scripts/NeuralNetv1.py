@@ -124,17 +124,22 @@ def train_model(model, dataset, validation_set, epochs, label_name,
 
   return epochs, rmse, hist
 
-def GetTestLosses(test_label, test_features, model):
+def GetTestLosses(test_label, test_features, model, testing):
 
     loss_hist = []
+    features = {name:np.array(value) for name, value in testing.items()}
+    label = np.array(features.pop("Fidelity"))
+    
+    h = model.predict([features.flatten()])
     
     for k in range(0, len(test_label)):
         true_val = test_label[k]
-        entry = test_features.iloc[k]
+        #entry = test_features.iloc[k]
         
-        entry = {name:np.array(value) for name, value in entry.items()}
+        entry = {name:np.array(value) for name, value in test_features.items()}
         
-        pred_val = model.predict(entry, batch_size=1)
+        
+        pred_val = model.predict([entry], batch_size=1)
         error = np.abs(true_val - pred_val)
         loss_hist.append(error)      
     
@@ -192,15 +197,15 @@ def TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, t
     
     print("\n Evaluate the new model against the test set:")
     
-    his = my_model.evaluate(x = test_features, y = test_label, batch_size=1)
+    #his = my_model.evaluate(x = test_features, y = test_label, batch_size=1)
     
     #my_model.save("modelStorage/alpha")
     
-    #test_features = test_df.drop(["Fidelity"], axis=1)
+    test_features = test_df.drop(["Fidelity"], axis=1)
 
-    #mae_history = GetTestLosses(test_label, test_features, my_model)
+    mae_history = GetTestLosses(test_label, test_features, my_model, validation_df)
     
-    return np.mean(mae_history, mae_history)
+    return np.mean(mae_history, np.mean(mae_history))
 
 def JustTestNet(test_size, test_batch):
     my_model = tf.keras.models.load_model("modelStorage/alpha")
