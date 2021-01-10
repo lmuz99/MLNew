@@ -422,11 +422,13 @@ def StateConcurrence(mat_4x4):
     root_arg = np.matmul(buf2, root_rho)
     big_R = sqrtm(root_arg) # now we have R we work out its eigenvalues
     
+    
     try:
         eigenvalue_array = np.linalg.eigvals(big_R)
-    except Exception:
+    except np.linalg.LinAlgError:
         print(big_R)
         print(mat_4x4)
+        return 0
     
     
     #now we sort the eigenvalues into ascending order, taking their moduli
