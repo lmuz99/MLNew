@@ -313,6 +313,8 @@ def BatchDataMixed(batchnumber, data_size, \
     Filenames change if concurrence or entropy is controlled. I added CONC for concurrence
     and ENTR for entropy, and nothing if neither is capped.
     '''
+    print("Starting Generation")
+    
     raw_matrix_data = []
     #ref_data has 3 vectors for each element in the array corresponding to 2 references
     #to two density matrices in the raw_matrix_data array and their shared fidelity value
@@ -419,7 +421,14 @@ def StateConcurrence(mat_4x4):
     buf2 = np.matmul(root_rho, rho_tilde) # bufer variable for 3 matrix mult
     root_arg = np.matmul(buf2, root_rho)
     big_R = sqrtm(root_arg) # now we have R we work out its eigenvalues
-    eigenvalue_array = np.linalg.eigvals(big_R)
+    
+    try:
+        eigenvalue_array = np.linalg.eigvals(big_R)
+    except Exception:
+        print(big_R)
+        print(mat_4x4)
+    
+    
     #now we sort the eigenvalues into ascending order, taking their moduli
     np.sort_complex(eigenvalue_array)
     #print(eigenvalue_array)

@@ -33,9 +33,12 @@ def ReplaceMe(batch_size, train_size, train_batch, valid_size, valid_batch, test
 # s: all VN entropy values in an array
     
 # ---------------- CONCURRENCE ------------------------- #
-for i in range(5):
+for i in range(1,5):
     data_size_arr = []#
     losses = [] # loss for different data sizes
+    loss_dist_hist = []
+    fids = []
+    fid_hist = []
     
     #data_sizes = [2,4,8, 16, 32, 64,  128, 256,  512,   1024]
     #             [1,6,28,120,496,2016,8128,32640,130816,523776]
@@ -98,6 +101,9 @@ for i in range(5):
         
         data_size_arr.append(y)
         losses.append(loss_avg)
+        loss_dist_hist.append(loss_dist)
+        fids.append(fid_avg)
+        fid_hist.append(fid_dist)
         
         print("#"*60)
         
