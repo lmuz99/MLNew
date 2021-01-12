@@ -334,7 +334,7 @@ def BatchDataMixed(batchnumber, data_size, \
     while (data_counter <= data_size):
         mat = TransformMatrix(Mixed2QGen()) # make a mixed state density matrix
         if select_concurrence[0] == True:
-            filename = "MixedData_ref_fidCONC" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
             if StateConcurrence(mat) <= select_concurrence[2] and StateConcurrence(mat) >= select_concurrence[1]:   
                 concurrence_arr.append(StateConcurrence(mat))
                 raw_matrix_data.append(mat) # appends only matrices within specified range
@@ -342,7 +342,7 @@ def BatchDataMixed(batchnumber, data_size, \
             else:
                 pass # does nothing if the value is greater and the concurrence condition true
         elif select_entropy == True:
-            filename = "MixedData_ref_fidENTR" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
             if StateEntropy(mat) >= select_entropy[1] and StateEntropy(mat) <= select_entropy[2]:
                 entropy_arr.append(StateEntropy(mat, 100))
                 raw_matrix_data.appen(mat) # only appends matrices within specified range

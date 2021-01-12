@@ -61,7 +61,7 @@ import TwoQbitGen as tq
      
 def ReconstructFile(batch_num, data_size, conc, entr):
     print("Reconstructing data")
-    if(entr):
+    if(conc):
         vector = pd.read_csv("MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batch_num) + ".csv", header = 0, sep = ',', dtype = \
                      {"Density Ref1":np.int32,"Density Ref2":np.int32,"Fidelity":float})
         
