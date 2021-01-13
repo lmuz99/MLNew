@@ -356,6 +356,7 @@ def BatchDataMixed(batchnumber, data_size, \
             data_counter +=1
             concurrence_arr.append(StateConcurrence(mat))
             entropy_arr.append(StateEntropy(mat, 100))
+    print("Generation, Conc and Entr complete, calculating fidelities")
             
     all_fidelity_vals = []
     for i in range(data_size):
@@ -364,7 +365,7 @@ def BatchDataMixed(batchnumber, data_size, \
             ref_data.append([i,j,fid])
             all_fidelity_vals.append(fid)
             
-    
+    print("Fidelities calculated")
      #Stores the ref_data 
     df = pd.DataFrame(ref_data, columns=['Density Ref1', 'Density Ref2', 'Fidelity'])
     
@@ -400,7 +401,7 @@ def BatchDataMixed(batchnumber, data_size, \
                                             'P_30R','P_30I','P_31R','P_31I','P_32R','P_32I','P_33R','P_33I'])
     filename2 = "Matrices2Q"+ "S" + str(data_size) +"#"  + str(batchnumber) + ".csv"
     dg.to_csv(filename2, index = False)
-    print(len(ref_data), "Reference Data Length")
+    print(len(ref_data), "Reference Data Length, data is ready")
     
     return np.real(avg_fid), data_size, std_fid, all_fidelity_vals, concurrence_arr, entropy_arr
 
