@@ -109,11 +109,15 @@ def BatchData(batchnumber, data_size):
     for i in range(data_size):
         mat = MakeDensityMatrix()
         raw_matrix_data.append(mat)
-        
+    '''  
     for i in range(data_size):
         for j in range(i+1, data_size): #upper triangular nesting, i+1 to stop a fidelity with a density matrix on itself
             fid = Fidelity(raw_matrix_data[i], raw_matrix_data[j])
             ref_data.append([i,j,fid])
+    '''
+    for i in range(data_size):
+        fid = Fidelity(raw_matrix_data[0], raw_matrix_data[i])
+        ref_data.append([0, i, fid])
             
     #print(len(ref_data))
     #Make 2 files per batch: 1 to store the density matrices and 1 to store 2 labels and the fidelity
