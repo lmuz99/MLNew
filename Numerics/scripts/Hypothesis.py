@@ -42,11 +42,12 @@ def FidValDist():
         x, y, z = tq.BatchData(0, 400) #x is fidelity values, y is number of density matrices and z is the varience 
         fidelities_raw.append(x)
         print(i/5, "%")
-        
-    plt.hist(fidelities_raw, bins = 20)
-    plt.show()
+    return fidelities_raw
+fids = FidValDist()        
+plt.hist(fids, bins = 20)
+plt.show()
 
-FidValDist()
+
 #%%
 
 import numpy as np
@@ -126,7 +127,7 @@ many_fidelities = []
 for i in range(1, 10):
     a = 2**i
     #print(a)
-    x, y, z, f = tq.BatchDataMixed(0, a)
+    x, y, z, f, s, c = tq.BatchDataMixed(0, a)
     fidelity_values.append(x)
     batch_data.append(y)
     fidelity_std.append(z)
@@ -140,9 +141,16 @@ plt.grid()
 plt.show()
 print(fidelity_values)
 '''
-plt.hist(many_fidelities, bins = 150, rwidth = 6)
+#%%
+colors = ['c','w','y','g','b','r','k','m','b']
+
+plt.title("Mixed State Fidelity Value Distribution for 130000 Fidelities", size = 15)
+plt.xlabel("Fidelity", size = 15)
+plt.ylabel("Frequency", size = 15)
+plt.hist(many_fidelities[8], bins = 150, rwidth = 6, color = colors[8])
 plt.gca().invert_xaxis()
 plt.grid()
+
 plt.show()
 
 

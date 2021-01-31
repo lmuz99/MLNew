@@ -29,7 +29,7 @@ noise = 0 #fraction of random error per matrix entry
 entang_entr = 1 #entanglement entropy
 
 
-def MakeDensityMatrix():
+def MakeDensityMatrix(entropy = False):
     #Produce random values for the six params over appropriate ranges
     chi = np.random.random_sample()*0.5*np.pi
     theta_1 = np.random.random_sample()*np.pi
@@ -81,9 +81,20 @@ def MakeDensityMatrix():
         pass
     else:
         print("Purity condition violated")
-
-                
-    return rho_full
+        
+    if (entropy == True):
+        #Make the subsystem density matrix
+        sub_rho = np.zeros(shape = (2,2), dtype = float)
+        sub_rho[0,0] = 0.5 * ( 1 + np.cos(chi) * np.cos(theta_1))
+        sub_rho[0,1] = 0.5 * np.cos(chi) * (np.cos(phi_1) * np.sin(theta_1) - \
+               1j * np.sin(phi_1) * np.sin(theta_1))
+        sub_rho[1,0] = np.conj(sub_rho[0,1])
+        sub_rho[1,1] = 1 - sub_rho[0,0]
+        #Calculate the sub VNE
+        entropy = SubsystemVNE(sub_rho, 100)
+        return rho_full, entropy
+    else:
+        return rho_full
     # Eventually we will make the angles the arguments for procedural generation
 
 def Fidelity(matA, matB):
@@ -95,39 +106,48 @@ def Fidelity(matA, matB):
     for i in range(0,4):
         trace += np.real(product[i,i])  #check tf for trace method
         #NB: take the real because there is sometimes floating point complex error here
-    if (trace < 0) or (trace > 1):
+    if (trace < 0) or (trace > 1.00000001):
         print(trace)
         raise Exception("Fidelity must be between 0 and 1, the matrices need renormalising")
     return trace     
     #uses the trace relation F(A,B) = Tr(AB) for pure states
 
-def BatchData(batchnumber, data_size):
+def BatchData(batchnumber, data_size, select_entropy = [False,0,2]):
     raw_matrix_data = []
     #ref_data has 3 vectors for each element in the array corresponding to 2 references
     #to two density matrices in the raw_matrix_data array and their shared fidelity value
+
+    
     ref_data = []
-    for i in range(data_size):
-        mat = MakeDensityMatrix()
-        raw_matrix_data.append(mat)
-    '''  
-    for i in range(data_size):
-        for j in range(i+1, data_size): #upper triangular nesting, i+1 to stop a fidelity with a density matrix on itself
-            fid = Fidelity(raw_matrix_data[i], raw_matrix_data[j])
-            ref_data.append([i,j,fid])
-    '''
+    sub_entropy_arr = []
+    counter = 0
+    while (counter <= data_size):
+        if (select_entropy[0] == False):
+            counter += 1
+            mat = MakeDensityMatrix()
+            raw_matrix_data.append(mat)
+        else:
+            mat, entropy = MakeDensityMatrix(True)
+            if (entropy >= select_entropy[1] and (entropy <= select_entropy[2])):
+                counter += 1
+                raw_matrix_data.append(mat)
+                sub_entropy_arr.append(entropy)
+            else:
+                pass
     for i in range(data_size):
         fid = Fidelity(raw_matrix_data[0], raw_matrix_data[i])
         ref_data.append([0, i, fid])
             
     #print(len(ref_data))
     #Make 2 files per batch: 1 to store the density matrices and 1 to store 2 labels and the fidelity
+    filename = "data_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
 
     #Stores the ref_data 
     df = pd.DataFrame(ref_data, columns=['Density Ref1', 'Density Ref2', 'Fidelity'])
-    filename = "data_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+
     df.to_csv(filename, index = False)
     #Converts the density matrices into a 32D vector and stores, flattening happens
-    # by row.
+    # row by row.
     #print(ref_data)
     fid_sum = 0
     varience_buf = []
@@ -165,7 +185,7 @@ def BatchData(batchnumber, data_size):
     filename2 = "Matrices2Q"+ "S" + str(data_size) +"#"  + str(batchnumber) + ".csv"
     dg.to_csv(filename2, index = False)
     
-    return avg_fid, data_size, std_fid
+    return avg_fid, data_size, std_fid, sub_entropy_arr
     
 
 def DataIntegrityChecker():
@@ -444,6 +464,27 @@ def StateConcurrence(mat_4x4):
     #floating point error means it will never be 0 so we return the mixed state
     #concurrence and if it falls below a certain threshold we can call it "0"
     return np.abs(concurrence_complex)
+    
+def SubsystemVNE(mat_2x2, order):
+    if isinstance(mat_2x2, float) == True:
+        log_matrix = np.zeros(shape = (2,2), dtype = float)
+    else:
+        log_matrix = np.zeros(shape = (2,2), dtype = complex)
+    
+    identity_2x2 = np.zeros(shape = (2,2))
+    identity_2x2[0,0] = 1
+    identity_2x2[1,1] = 1
+    buffer_matrix = mat_2x2 - identity_2x2 # buffer matrix to let us taylor expand
+    
+    for i in range(1, order):
+        if order == 1:
+            log_matrix += np.add(log_matrix, buffer_matrix) #dodgy step?
+        else: 
+            matrix_power_buffer = np.linalg.matrix_power(buffer_matrix, order)
+            log_matrix += ((-1) ** order) * np.add(log_matrix, matrix_power_buffer)/order
+    rho_lnRho = np.matmul(mat_2x2, log_matrix)
+    subVNentropy = np.trace(rho_lnRho)
+    return np.real(subVNentropy)
     
 
 def CheckShape(matrix):
