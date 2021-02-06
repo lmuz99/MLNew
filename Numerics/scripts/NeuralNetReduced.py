@@ -60,7 +60,7 @@ def LoadData(data, batch):
 
 
 
-def BuildModel(learning_rate):
+def BuildModel(learning_rate, entries):
     
     l2reg = 5.5E-5
     activation_func = 'relu'
@@ -71,7 +71,7 @@ def BuildModel(learning_rate):
     decay_rate=0.98,
     staircase=True)
     
-    inputs = keras.Input(shape=(64))
+    inputs = keras.Input(shape=(entries))
     
     dense0 = layers.Dense(units = 992,
                      activation=activation_func,
@@ -105,17 +105,19 @@ def BuildModel(learning_rate):
     return model
 
 
-def TrainModel(model, dataset, validation_set, epochs, label_name,
+def TrainModel(model, dataset, validation_set, epochs, label_name, val_indices,
                 batch_size=None):
   """Train the model by feeding it data."""
 
   train_label = dataset[label_name]
   train_features = dataset.drop(label_name, axis = 1)
+  train_features = train_features.iloc[:, val_indices]
     
   val_label = validation_set[label_name]
-  val_features = validation_set.drop(label_name, axis = 1)  
+  val_features = validation_set.drop(label_name, axis = 1)
+  val_features = val_features.iloc[:, val_indices]  
   
-  es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience = 50, verbose=2)
+  es = tf.keras.callbacks.EarlyStopping(monitor='val_mean_absolute_error', patience = 45, verbose=2, min_delta = 0.00001)
 
 
   history = model.fit(x=train_features, y=train_label, batch_size=batch_size,
@@ -130,7 +132,6 @@ def TrainModel(model, dataset, validation_set, epochs, label_name,
   rmse = hist["mean_absolute_error"]
 
   return epochs, rmse, hist
-
 
 def plot_the_loss_curve(epochs, mae_training, mae_validation):
   """Plot a curve of loss vs. epoch."""
@@ -162,7 +163,7 @@ print("Defined the plot_the_loss_curve function.")
        
 
 
-def TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, test_size, test_batch):
+def TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, test_size, test_batch, val_indices, entries):
     Initialise()
     train_df, validation_df, test_df = ProcessData(train_size, train_batch, valid_size, valid_batch, test_size, test_batch)
 
@@ -173,13 +174,12 @@ def TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, t
     learning_rate = 0.0001
     epochs = 600
     
-    
 
-    my_model = BuildModel(learning_rate = learning_rate)
+    my_model = BuildModel(learning_rate = learning_rate, entries = entries)
     
 
     epochs, rmse, history = TrainModel(my_model, train_df, validation_df, epochs, 
-                              label_name, batch_size)
+                              label_name, val_indices, batch_size)
 
     plot_the_loss_curve(epochs, history["mean_absolute_error"], 
                     history["val_mean_absolute_error"])
@@ -188,6 +188,7 @@ def TrainTestNet(batch_size, train_size, train_batch, valid_size, valid_batch, t
 
     test_label = test_df[label_name]
     test_features = test_df.drop(label_name, axis = 1)
+    test_features = test_features.iloc[:, val_indices]
     
     print("\n Evaluating against the test set:")
     

@@ -33,12 +33,13 @@ def ReplaceMe(batch_size, train_size, train_batch, valid_size, valid_batch, test
 # s: all VN entropy values in an array
     
 # ---------------- CONCURRENCE ------------------------- #
-for i in range(1,5):
+for i in range(1):
+    i=0
     data_size_arr = []#
     losses = [] # loss for different data sizes
-    loss_dist_hist = []
+
     fids = []
-    fid_hist = []
+
     
     #data_sizes = [2,4,8, 16, 32, 64,  128, 256,  512,   1024]
     #             [1,6,28,120,496,2016,8128,32640,130816,523776]
@@ -60,23 +61,37 @@ for i in range(1,5):
         xT, yT, zT, fT, cT, sT = tq.BatchDataMixed(2, test_sizes[j-1], select_concurrence = [True, i/6, (i+1)/6])            
         dr.ReconstructFile(2, test_sizes[j-1], conc=True, entr=False)
         
+        # ---------------- RUN NEURAL NET ------------------------- #        
+        
+        #Call NN and return average mean average error and estimated fidelity, as well as the full set of these values
+        loss_avg, loss_dist, fid_avg, fid_dist = ReplaceMe(batch_sizes[j-1], size, 0, val_sizes[j-1], 1, test_sizes[j-1], 2) # RUN NN on the data just created
+        
+        #Append data size with averages to storage for plotting
+        data_size_arr.append(y)
+        losses.append(loss_avg)
+        fids.append(fid_avg)
+
+        
+        print("#"*60)
+        
         
 # ---------------- RECORD DATA STATS ------------------------- #
         
-        averages = [x,y,z,xV,yV,zV,xT,yT,zT]
+        averages = [x,y,z,xV,yV,zV,xT,yT,zT,fid_avg,loss_avg]
         avg_columns = ["Train_Avg_Fid","Train_Data_Size","Train_StdDev_Fid",\
                    "Val_Avg_Fid","Val_Data_Size","Val_StdDev_Fid",\
-                   "Test_Avg_Fid","Test_Data_Size","Test_StdDev_Fid"]
+                   "Test_Avg_Fid","Test_Data_Size","Test_StdDev_Fid",\
+                   "NN_Test_Avg_Fid", "NN_Test_Avg_MAE"]
             
         da = pd.DataFrame(data = averages)
         da = da.T
         da.columns = avg_columns
-        filename = "ConcDataAverages" + str(size) +"CONC" + str(i) + ".csv"        
+        filename = "Averages" + str(size) +"CONC" + str(i) + "-6.csv"        
         da.to_csv(filename, index = False)
         
         
-        fidelities = [f, fV, fT]
-        fid_columns = ["Train_All_Fid", "Val_All_Fid", "Test_All_Fid"]
+        fidelities = [f, fV, fT, fid_dist, loss_dist]
+        fid_columns = ["Train_All_Fid", "Val_All_Fid", "Test_All_Fid", "NN_Test_All_Fid", "NN_Test_All_MAE"]
             
         df = pd.DataFrame(data = fidelities)
         df = df.T
@@ -95,17 +110,7 @@ for i in range(1,5):
         dc.to_csv(filename, index = False)
             
         
-# ---------------- RUN NEURAL NET ------------------------- #        
-        
-        loss_avg, loss_dist, fid_avg, fid_dist = ReplaceMe(batch_sizes[j-1], size, 0, val_sizes[j-1], 1, test_sizes[j-1], 2) # RUN NN on the data just created
-        
-        data_size_arr.append(y)
-        losses.append(loss_avg)
-        loss_dist_hist.append(loss_dist)
-        fids.append(fid_avg)
-        fid_hist.append(fid_dist)
-        
-        print("#"*60)
+
         
         
         

@@ -156,6 +156,13 @@ def BatchData(batchnumber, data_size, select_entropy = [False,0,2]):
         varience_buf.append(ref_data[i][2])
     avg_fid = fid_sum/len(ref_data)
     std_fid = np.var(varience_buf)
+    
+    all_fidelity_vals = []
+    for i in range(data_size):
+        for j in range(i+1, data_size): #upper triangular nesting, i+1 to stop a fidelity with a density matrix on itself
+            fid = FidelityMixed(raw_matrix_data[i], raw_matrix_data[j])
+            ref_data.append([i,j,fid])
+            all_fidelity_vals.append(fid)
 
         
     flat_data = []
@@ -185,7 +192,7 @@ def BatchData(batchnumber, data_size, select_entropy = [False,0,2]):
     filename2 = "Matrices2Q"+ "S" + str(data_size) +"#"  + str(batchnumber) + ".csv"
     dg.to_csv(filename2, index = False)
     
-    return avg_fid, data_size, std_fid, sub_entropy_arr
+    return avg_fid, data_size, std_fid, all_fidelity_vals, sub_entropy_arr
     
 
 def DataIntegrityChecker():
@@ -358,7 +365,7 @@ def BatchDataMixed(batchnumber, data_size, \
     while (data_counter <= data_size):
         mat = TransformMatrix(Mixed2QGen()) # make a mixed state density matrix
         if select_concurrence[0] == True:
-            filename = "MixedData_ref_fidCONC" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
             if StateConcurrence(mat) <= select_concurrence[2] and StateConcurrence(mat) >= select_concurrence[1]:   
                 concurrence_arr.append(StateConcurrence(mat))
                 raw_matrix_data.append(mat) # appends only matrices within specified range
@@ -366,7 +373,7 @@ def BatchDataMixed(batchnumber, data_size, \
             else:
                 pass # does nothing if the value is greater and the concurrence condition true
         elif select_entropy == True:
-            filename = "MixedData_ref_fidENTR" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
+            filename = "MixedData_ref_fid" + "S" + str(data_size) + "#" + str(batchnumber) + ".csv"
             if StateEntropy(mat) >= select_entropy[1] and StateEntropy(mat) <= select_entropy[2]:
                 entropy_arr.append(StateEntropy(mat, 100))
                 raw_matrix_data.appen(mat) # only appends matrices within specified range
